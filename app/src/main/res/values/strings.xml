@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">My Thread</string>
+    <string name="action_settings">Settings</string>
+    <string-array name="imageUrls">
+        <item>http://3.bp.blogspot.com/-eAVdRohhVVE/T3x4TkF1lYI/AAAAAAAAE_g/u1zJSlfXhqo/s1600/apple.jpg</item>
+        <item>http://d75822.medialib.glogster.com/justinkladas/media/0c/0ccf10b236206be3ec3dc3ad212d6a30f1c85e1d/10459428-ripe-red-apple-illustration-on-white-background.jpg</item>
+        <item>http://science-all.com/image.php?pic=/images/orange/orange-04.jpg</item>
+        <item>http://www.medindia.net/health-images/mangoes.jpg</item>
+    </string-array>
+    <string-array name="urls">
+        <item>Image 1</item>
+        <item>Image 2</item>
+        <item>Image 3</item>
+        <item>Image 4</item>
+    </string-array>
+</resources>
