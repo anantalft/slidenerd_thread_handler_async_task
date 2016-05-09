@@ -3,6 +3,7 @@ package com.example.ananta.mythread;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -94,113 +95,149 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void downloadImage(View view){
-        String url=editText.getText().toString();
-        imageView.setImageDrawable(Drawable.createFromPath(url));
-        Thread myThread = new Thread(new DownloadImagesThread(url));
-        myThread.start();
+        if(editText.getText().toString() != null && editText.getText().toString().length()>0){
 
-        //downloadImageUsingThreads(listOfImages[0]);
-       // imageView.setImageBitmap(BitmapFactory.decodeFile(file.getAbsolutePath()));
+            MyTask myTask = new MyTask();
+            myTask.execute(editText.getText().toString());
+
+        }
+//        String url=editText.getText().toString();
+//        Thread myThread = new Thread(new DownloadImagesThread(url));
+//        myThread.start();
+
 
 
     }
 
-    public boolean downloadImageUsingThreads(String url){
+//    public boolean downloadImageUsingThreads(String url){
+//
+//
+//    }
+//    private class DownloadImagesThread implements Runnable{
+//
+//        private String url;
+//
+//        public DownloadImagesThread(String url){
+//            this.url= url;
+//        }
+//
+//        @Override
+//        public void run(){
+////            MainActivity.this.runOnUiThread(new Runnable() {
+////                @Override
+////                public void run() {
+////                    loadingSection.setVisibility(View.VISIBLE);
+////                    imageView.setImageDrawable(Drawable.createFromPath(url));
+////                }
+////            });
+//            handler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    loadingSection.setVisibility(View.VISIBLE);
+//
+//                }
+//            });
+//           // downloadImageUsingThreads(url);
+//
+//
+//        }
+//
+//    }
+    class MyTask extends AsyncTask<String, Integer,Boolean> {
 
-        boolean successful = false;
-        URL downloadURL=null;
-        HttpURLConnection connection = null;
-        InputStream inputStream = null;
-        FileOutputStream fileOutputStream = null;
-        File file = null;
-        try{
+        private int contentLength = 1;
+        private int counter = 0;
 
-            downloadURL = new URL(url);
-            connection =  (HttpURLConnection)downloadURL.openConnection();
-            inputStream = connection.getInputStream();
-            file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                    .getAbsoluteFile() + "/" + Uri.parse(url).getLastPathSegment());
-            fileOutputStream = new FileOutputStream(file);
-            int read = -1;
-            byte[] buffer = new byte[1024];
-            while((read = inputStream.read(buffer))!= -1){
-                //Toast.makeText(this,read,Toast.LENGTH_SHORT).show();
-                fileOutputStream.write(buffer,0,read);
-            }
-            successful = true;
-
-        } catch (MalformedURLException e){
-
-        } catch(IOException e){
+        @Override
+        protected void onPreExecute() {
+            loadingSection.setVisibility(View.VISIBLE);
 
         }
-        finally{
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            boolean successful = false;
+            URL downloadURL=null;
+            HttpURLConnection connection = null;
+            InputStream inputStream = null;
+            FileOutputStream fileOutputStream = null;
+            File file = null;
+            try{
+
+                downloadURL = new URL(params[0]);
+                connection =  (HttpURLConnection)downloadURL.openConnection();
+                contentLength = connection.getContentLength();
+                inputStream = connection.getInputStream();
+                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        .getAbsoluteFile() + "/" + Uri.parse(params[0]).getLastPathSegment());
+                fileOutputStream = new FileOutputStream(file);
+                int read = -1;
+                byte[] buffer = new byte[1024];
+                while((read = inputStream.read(buffer))!= -1){
+                    //Toast.makeText(this,read,Toast.LENGTH_SHORT).show();
+                    fileOutputStream.write(buffer,0,read);
+                    counter = counter + read;
+                  //  Toast.makeText(this,"dd",Toast.LENGTH_SHORT).show();
+                    publishProgress(counter);
+                }
+
+                successful = true;
+
+            } catch (MalformedURLException e){
+
+            } catch(IOException e){
+
+            }
+            finally{
 //            this.runOnUiThread(new Runnable(){
 //                @Override
 //            public void run(){
 //                    loadingSection.setVisibility(View.GONE);
 //                }
 //            });
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    loadingSection.setVisibility(View.GONE);
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        loadingSection.setVisibility(View.GONE);
+//                    }
+//                });
+                if (connection != null){
+                    connection.disconnect();
                 }
-            });
-            if (connection != null){
-                connection.disconnect();
-            }
-            if(inputStream != null){
-                try{
-                    inputStream.close();
+                if(inputStream != null){
+                    try{
+                        inputStream.close();
 
-                }catch(IOException e){
+                    }catch(IOException e){
+
+                    }
 
                 }
-
-            }
-            if (fileOutputStream != null){
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (fileOutputStream != null){
+                    try {
+                        fileOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        }
 
 
 
-        return successful;
-    }
-    private class DownloadImagesThread implements Runnable{
-
-        private String url;
-
-        public DownloadImagesThread(String url){
-            this.url= url;
+            return successful;
         }
 
         @Override
-        public void run(){
-//            MainActivity.this.runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    loadingSection.setVisibility(View.VISIBLE);
-//                    imageView.setImageDrawable(Drawable.createFromPath(url));
-//                }
-//            });
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    loadingSection.setVisibility(View.VISIBLE);
-
-                }
-            });
-            downloadImageUsingThreads(url);
-
+        protected void onProgressUpdate(Integer... values) {
 
         }
 
+        @Override
+        protected void onPostExecute(Boolean aVoid) {
+            loadingSection.setVisibility(View.GONE);
+        }
     }
 
+
 }
+
